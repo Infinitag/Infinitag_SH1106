@@ -1,1 +1,1 @@
-# Infinitag_SH1106
+# SH1106
