@@ -1,4 +1,4 @@
-#include "sh1106_spi.h"
+#include "Infinitag_SH1106.h"
 
 
 sh1106_spi create_display(int8_t resetPin, int8_t dcPin, int8_t csPin)

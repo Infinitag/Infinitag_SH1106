@@ -7,8 +7,8 @@
 * License: https://creativecommons.org/licenses/by-nc-sa/4.0/
 */
 
-#ifndef SH1106_SPI_H
-#define SH1106_SPI_H
+#ifndef Infinitag_SH1106_H
+#define Infinitag_SH1106_H
 
 #include <SPI.h>
 
