@@ -1,8 +1,14 @@
+/* 
+* INFINITAG - open source laser tag
+* Authors: Jani Taxidis, Tobias Stewen & Florian Kleene
+* Website: www.infinitag.io
+*
+* All files are published under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+* License: https://creativecommons.org/licenses/by-nc-sa/4.0/
+*/
 #include "Infinitag_SH1106.h"
 
-
-sh1106_spi create_display(int8_t resetPin, int8_t dcPin, int8_t csPin)
-{
+sh1106_spi create_display(int8_t resetPin, int8_t dcPin, int8_t csPin) {
   struct sh1106_spi display = {};
   display.resetPin = resetPin;
   display.dcPin = dcPin;  
@@ -15,45 +21,38 @@ sh1106_spi create_display(int8_t resetPin, int8_t dcPin, int8_t csPin)
   return(display);
 }
 
-void beginCommandMode(struct sh1106_spi* display)
-{
+void beginCommandMode(struct sh1106_spi* display) {
   digitalWrite(display->dcPin, LOW);  
   digitalWrite(display->csPin, LOW);
 }
 
-void endCommandMode(struct sh1106_spi* display)
-{
+void endCommandMode(struct sh1106_spi* display) {
   digitalWrite(display->csPin, HIGH);
 }
 
-void beginDataMode(struct sh1106_spi* display)
-{
+void beginDataMode(struct sh1106_spi* display) {
   digitalWrite(display->dcPin, HIGH); 
   digitalWrite(display->csPin, LOW);
 }
 
-void endDataMode(struct sh1106_spi* display)
-{
+void endDataMode(struct sh1106_spi* display) {
   digitalWrite(display->csPin, HIGH); 
 }
 
-void display_command(struct sh1106_spi* display, uint8_t command)
-{
+void display_command(struct sh1106_spi* display, uint8_t command) {
   beginCommandMode(display);
   SPI.transfer(command);
   endCommandMode(display);
 }
 
-void display_command_param(struct sh1106_spi* display, uint8_t command, uint8_t param)
-{
+void display_command_param(struct sh1106_spi* display, uint8_t command, uint8_t param) {
   beginCommandMode(display);
   SPI.transfer(command);
   SPI.transfer(param);
   endCommandMode(display);  
 }
 
-void display_buffer(struct sh1106_spi* display, const uint8_t* buffer)
-{
+void display_buffer(struct sh1106_spi* display, const uint8_t* buffer) {
   const byte rowCount = SCREEN_HEIGHT >> 3;
   for (byte row = 0; row < rowCount; row++)
   {
@@ -77,8 +76,7 @@ void display_buffer(struct sh1106_spi* display, const uint8_t* buffer)
   }
 }
 
-void initialize_display(struct sh1106_spi* display)
-{
+void initialize_display(struct sh1106_spi* display) {
   SPI.setBitOrder(MSBFIRST);
   
   delay(10);
