@@ -1,7 +1,7 @@
 <p><a href="http://www.infinitag.io/"><img src="http://www.infinitag.io/wp-content/themes/infinitag/img/infinitag_w_10mm_rgb.png" height="75px"></a></p>
 
 
-## Tagger
+## Infintag_SH1106
 This repository contains the source code for **SH1106**, the library for the SH1106 OLED display.
 
 ## License
