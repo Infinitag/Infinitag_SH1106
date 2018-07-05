@@ -8,93 +8,104 @@
 */
 #include "Infinitag_SH1106.h"
 
-sh1106_spi create_display(int8_t resetPin, int8_t dcPin, int8_t csPin) {
-  struct sh1106_spi display = {};
-  display.resetPin = resetPin;
-  display.dcPin = dcPin;  
-  display.csPin = csPin;
-  
-  pinMode(display.resetPin, OUTPUT);   
-  pinMode(display.dcPin, OUTPUT);  
-  pinMode(display.csPin, OUTPUT);
-  
-  return(display);
+#define SH1106_DISPLAY_ON 0xAE
+#define SH1106_DISPLAY_OFF 0xAF
+
+#define SH1106_LOWER_COLUMN_ADDR 0x00
+#define SH1106_HIGHER_COLUMN_ADDR 0x10
+#define SH1106_PAGE_ADDR 0xB0
+#define SH1106_START_LINE 0x40
+
+#define SH1106_COMMON_SCANDIRECTION_REV 0xC8
+#define SH1106_SET_SEGMENT_REMAP_NORM 0xA0
+#define SH1106_SET_SEGMENT_REMAP_REV 0xA1
+
+#define SH1106_SET_CONTRAST 0x81
+
+Infinitag_SH1106::Infinitag_SH1106(int8_t aResetPin, int8_t aDCPin, int8_t aCSPin) 
+    : myResetPin(aResetPin)
+    , myDCPin(aDCPin)
+    , myCSPin(aCSPin)
+{  
+  pinMode(myResetPin, OUTPUT);   
+  pinMode(myDCPin, OUTPUT);  
+  pinMode(myCSPin, OUTPUT);
 }
 
-void beginCommandMode(struct sh1106_spi* display) {
-  digitalWrite(display->dcPin, LOW);  
-  digitalWrite(display->csPin, LOW);
-}
-
-void endCommandMode(struct sh1106_spi* display) {
-  digitalWrite(display->csPin, HIGH);
-}
-
-void beginDataMode(struct sh1106_spi* display) {
-  digitalWrite(display->dcPin, HIGH); 
-  digitalWrite(display->csPin, LOW);
-}
-
-void endDataMode(struct sh1106_spi* display) {
-  digitalWrite(display->csPin, HIGH); 
-}
-
-void display_command(struct sh1106_spi* display, uint8_t command) {
-  beginCommandMode(display);
-  SPI.transfer(command);
-  endCommandMode(display);
-}
-
-void display_command_param(struct sh1106_spi* display, uint8_t command, uint8_t param) {
-  beginCommandMode(display);
-  SPI.transfer(command);
-  SPI.transfer(param);
-  endCommandMode(display);  
-}
-
-void display_buffer(struct sh1106_spi* display, const uint8_t* buffer) {
-  const byte rowCount = SCREEN_HEIGHT >> 3;
-  for (byte row = 0; row < rowCount; row++)
-  {
-    display_command(display, (SH1106_PAGE_ADDR | row));
-    display_command(display, (SH1106_LOWER_COLUMN_ADDR | 0x02));
-    display_command(display, (SH1106_HIGHER_COLUMN_ADDR | 0x0));
-       
-    beginDataMode(display);
-    for (byte col = 0; col < SCREEN_WIDTH; col++)
-    { 
-      if(!buffer)
-      {
-        SPI.transfer(0x00);
-      }
-      else
-      {
-        SPI.transfer(buffer[col + SCREEN_WIDTH * row]);
-      }
-    }
-    endDataMode(display);
-  }
-}
-
-void initialize_display(struct sh1106_spi* display) {
+void Infinitag_SH1106::Init() {
   SPI.setBitOrder(MSBFIRST);
   
   delay(10);
   
   //reset display
-  digitalWrite(display->resetPin, LOW);
+  digitalWrite(myResetPin, LOW);
   delay(1);
-  digitalWrite(display->resetPin, HIGH);
+  digitalWrite(myResetPin, HIGH);
     
-  display_buffer(display, 0);
+  Display(0);
   
   //turn display on
-  display_command(display, (SH1106_DISPLAY_ON | 1));
+  Command(SH1106_DISPLAY_ON | 1);
 
   //set contrast high
-  display_command_param(display, SH1106_SET_CONTRAST, 0xFF);
+  CommandParam(SH1106_SET_CONTRAST, 0xFF);
 
   //Flip Display
-  display_command(display, SH1106_COMMON_SCANDIRECTION_REV);
-  display_command(display, SH1106_SET_SEGMENT_REMAP_REV);
+  Command(SH1106_COMMON_SCANDIRECTION_REV);
+  Command(SH1106_SET_SEGMENT_REMAP_REV);
+}
+
+void Infinitag_SH1106::Display(const uint8_t* aBuffer) {
+  const byte rowCount = INFINITAG_SCREEN_HEIGHT >> 3;
+  for (byte row = 0; row < rowCount; row++)
+  {
+    Command(SH1106_PAGE_ADDR | row);
+    Command(SH1106_LOWER_COLUMN_ADDR | 0x02);
+    Command(SH1106_HIGHER_COLUMN_ADDR | 0x0);
+       
+    BeginDataMode();
+    for (byte col = 0; col < INFINITAG_SCREEN_WIDTH; col++)
+    { 
+      if(!aBuffer)
+      {
+        SPI.transfer(0x00);
+      }
+      else
+      {
+        SPI.transfer(aBuffer[col + INFINITAG_SCREEN_WIDTH * row]);
+      }
+    }
+    EndDataMode();
+  }
+}
+
+void Infinitag_SH1106::BeginCommandMode() {
+  digitalWrite(myDCPin, LOW);  
+  digitalWrite(myCSPin, LOW);
+}
+
+void Infinitag_SH1106::EndCommandMode() {
+  digitalWrite(myCSPin, HIGH);
+}
+
+void Infinitag_SH1106::BeginDataMode() {
+  digitalWrite(myDCPin, HIGH); 
+  digitalWrite(myCSPin, LOW);
+}
+
+void Infinitag_SH1106::EndDataMode() {
+  digitalWrite(myCSPin, HIGH); 
+}
+
+void Infinitag_SH1106::Command(uint8_t aCommand) {
+  BeginCommandMode();
+  SPI.transfer(aCommand);
+  EndCommandMode();
+}
+
+void Infinitag_SH1106::CommandParam(uint8_t aCommand, uint8_t aParam) {
+  BeginCommandMode();
+  SPI.transfer(aCommand);
+  SPI.transfer(aParam);
+  EndCommandMode();  
 }
